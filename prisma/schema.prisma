@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ShelfType {
+  SYSTEM
+  CUSTOM
+}
+
+enum SystemShelfKey {
+  FAVORITES
+  WANT_TO_READ
+  READ
+}
+
+enum ReadingStatus {
+  WANT_TO_READ
+  READING
+  READ
+}
+
+model User {
+  id                 String              @id @default(uuid()) @db.Uuid
+  name               String              @db.VarChar(80)
+  email              String              @unique @db.VarChar(254)
+  passwordHash       String
+  avatarUrl          String?
+  sessionVersion     Int                 @default(1)
+  createdAt          DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(3)
+  shelves            Shelf[]
+  readingStates      ReadingState[]
+  reviews            Review[]
+  readingNotes       ReadingNote[]
+  passwordResetToken PasswordResetToken?
+}
+
+model Book {
+  id            String         @id @default(uuid()) @db.Uuid
+  externalId    String         @unique @db.VarChar(128)
+  title         String
+  subtitle      String?
+  description   String?
+  authors       String[]       @default([])
+  coverUrl      String?
+  publisher     String?
+  publishedDate String?        @db.VarChar(32)
+  pageCount     Int?
+  language      String?        @db.VarChar(32)
+  isbn10        String?        @db.VarChar(10)
+  isbn13        String?        @db.VarChar(13)
+  categories    String[]       @default([])
+  averageRating Float?
+  ratingsCount  Int?
+  createdAt     DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime       @updatedAt @db.Timestamptz(3)
+  shelfBooks    ShelfBook[]
+  readingStates ReadingState[]
+  reviews       Review[]
+  readingNotes  ReadingNote[]
+
+  @@index([isbn10])
+  @@index([isbn13])
+}
+
+model Shelf {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @db.Uuid
+  name           String          @db.VarChar(80)
+  normalizedName String          @db.VarChar(80)
+  description    String?         @db.VarChar(500)
+  type           ShelfType       @default(CUSTOM)
+  systemKey      SystemShelfKey?
+  createdAt      DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime        @updatedAt @db.Timestamptz(3)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  books          ShelfBook[]
+
+  @@unique([userId, normalizedName])
+  @@unique([userId, systemKey])
+  @@index([userId, createdAt])
+}
+
+model ShelfBook {
+  shelfId String   @db.Uuid
+  bookId  String   @db.Uuid
+  addedAt DateTime @default(now()) @db.Timestamptz(3)
+  shelf   Shelf    @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  book    Book     @relation(fields: [bookId], references: [id], onDelete: Restrict)
+
+  @@id([shelfId, bookId])
+  @@index([bookId])
+  @@index([shelfId, addedAt])
+}
+
+model ReadingState {
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @db.Uuid
+  bookId      String        @db.Uuid
+  status      ReadingStatus @default(WANT_TO_READ)
+  currentPage Int           @default(0)
+  startedAt   DateTime?     @db.Timestamptz(3)
+  finishedAt  DateTime?     @db.Timestamptz(3)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book        Book          @relation(fields: [bookId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, bookId])
+  @@index([userId, status, updatedAt])
+  @@index([bookId])
+}
+
+model Review {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  bookId     String    @db.Uuid
+  rating     Int
+  title      String?   @db.VarChar(120)
+  content    String    @db.VarChar(20000)
+  finishedAt DateTime? @db.Date
+  isPublic   Boolean   @default(false)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book       Book      @relation(fields: [bookId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, bookId])
+  @@index([userId, createdAt])
+  @@index([bookId])
+}
+
+model ReadingNote {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  bookId    String   @db.Uuid
+  page      Int?
+  content   String   @db.VarChar(20000)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Restrict)
+
+  @@index([userId, bookId, createdAt])
+  @@index([bookId])
+}
+
+// Infraestrutura: limite de tentativas compartilhado entre processos do servidor.
+model AuthRateLimit {
+  key       String   @id @db.VarChar(80)
+  attempts  Int      @default(1)
+  expiresAt DateTime @db.Timestamptz(3)
+
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @unique @db.Uuid
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}

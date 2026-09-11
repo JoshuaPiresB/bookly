@@ -1,0 +1,25 @@
+import type { Metadata } from "next";
+import { BookOpen } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ZodError } from "zod";
+import { getShelf } from "@/features/shelves/shelf.service";
+import { listShelfBooks } from "@/features/shelves/shelf-book.service";
+import { BookCard } from "@/components/books/book-card";
+import { ConfirmAction } from "@/components/ui/confirm-action";
+import { ShelfFormButton } from "@/components/shelves/shelf-form";
+import { ShelfSort } from "@/components/shelves/shelf-sort";
+import { AppError } from "@/lib/errors";
+import { EmptyState } from "@/components/ui/empty-state";
+
+export const metadata: Metadata = { title: "Estante" };
+export const dynamic = "force-dynamic";
+export default async function ShelfPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ sort?: string; page?: string }> }) {
+  const { id } = await params; const query = await searchParams;
+  const sort = query.sort === "title" || query.sort === "author" ? query.sort : "recent";
+  const page = /^\d{1,6}$/.test(query.page ?? "") ? Math.min(417, Math.max(1, Number(query.page))) : 1;
+  let shelf, result;
+  try { [shelf, result] = await Promise.all([getShelf(id), listShelfBooks(id, { sort, limit: 24, offset: (page - 1) * 24 })]); }
+  catch (error) { if (error instanceof ZodError || (error instanceof AppError && error.status === 404)) notFound(); throw error; }
+  return <div className="pb-8"><Link href="/estantes" className="quiet-button mb-5 -ml-3 text-muted">← Minhas estantes</Link><div className="mb-7 flex flex-wrap items-start justify-between gap-4"><div><h1 className="font-serif text-[2rem] tracking-[-0.02em] sm:text-4xl">{shelf.name}</h1>{shelf.description && <p className="mt-2 max-w-2xl whitespace-pre-line leading-7 text-muted">{shelf.description}</p>}<p className="mt-2 text-sm text-muted">{result.total} {result.total === 1 ? "livro" : "livros"}</p></div><div className="flex gap-3"><Link href={`/explorar?shelf=${id}`} className="primary-button">Adicionar livros</Link>{shelf.type === "CUSTOM" && <ShelfFormButton shelf={shelf} />}</div></div><div className="mb-6 flex justify-end"><ShelfSort value={sort} /></div>{result.items.length ? <div className="grid grid-cols-2 gap-x-5 gap-y-8 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">{result.items.map(({ book }) => <div key={book.id}><BookCard book={book} /><ConfirmAction label="Remover da estante" title="Remover livro da estante?" description={`“${book.title}” será removido desta estante. O histórico de leitura, as resenhas e as anotações serão preservados.`} url={`/api/shelves/${id}/books/${book.id}`} /></div>)}</div> : <EmptyState icon={BookOpen} title={page > 1 ? "Não há livros nesta página." : "Esta estante ainda está vazia."} />}<nav aria-label="Paginação dos livros" className="mt-8 flex justify-between">{page > 1 ? <Link className="secondary-button" href={`?sort=${sort}&page=${page - 1}`}>Anterior</Link> : <span />}{page * 24 < result.total && <Link className="secondary-button" href={`?sort=${sort}&page=${page + 1}`}>Próxima</Link>}</nav></div>;
+}
