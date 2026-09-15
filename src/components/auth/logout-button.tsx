@@ -14,8 +14,8 @@ export function LogoutButton({ variant = "button" }: { variant?: "button" | "men
     if (sending.current) return;
     sending.current = true; setPending(true); setError("");
     try {
-      await signOut({ redirect: false, callbackUrl: "/login" });
-      router.replace("/login"); router.refresh();
+      await signOut({ redirect: false, callbackUrl: "/" });
+      router.replace("/"); router.refresh();
     } catch { setError("Não foi possível sair. Tente novamente."); }
     finally { sending.current = false; setPending(false); }
   }
