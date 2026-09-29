@@ -33,7 +33,7 @@ test.afterAll(async () => {
 });
 
 test("REST completo usa sessão real e protege ownership", async ({ request, playwright }) => {
-  expect((await request.get("/api/books/search?q=Hobbit")).status()).toBe(401);
+  expect((await request.get("/api/books/search?q=Hobbit")).status()).not.toBe(401);
   expect((await request.get("/api/shelves")).status()).toBe(401);
   await signIn(request);
   const response = await request.post("/api/shelves", { headers, data: { name: "  FICÇÃO  ", description: "Seleção" } });

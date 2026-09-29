@@ -22,11 +22,14 @@ export function ExploreView({ initialQuery, initialShelfId }: { initialQuery: st
   useEffect(() => {
     const controller = new AbortController();
     if (query.length < 2) {
-      setBooks([]);
-      setStatus("idle");
       return () => controller.abort();
     }
-    setStatus("loading");
+    queueMicrotask(() => {
+      if (!controller.signal.aborted) {
+        setError("");
+        setStatus("loading");
+      }
+    });
     
     Promise.all([
       fetch(`/api/books/search?q=${encodeURIComponent(query)}&limit=24`, { signal: controller.signal }),
@@ -49,10 +52,12 @@ export function ExploreView({ initialQuery, initialShelfId }: { initialQuery: st
     return () => { controller.abort(); };
   }, [query, attempt]);
 
+  const visibleStatus = query.length < 2 ? "idle" : status;
+
   return <div className="pb-8"><div className="mb-8"><h1 className="font-serif text-[2rem] tracking-[-0.02em] sm:text-4xl">Explorar livros</h1></div>
-    {status === "loading" && <BookGridSkeleton />}
-    {status === "idle" && <EmptyState icon={BookSearch} title="Encontre seu próximo livro." description="Pesquise por título, nome do autor ou ISBN." />}
-    {status === "error" && <EmptyState icon={TriangleAlert} title="Não foi possível concluir a busca." description={error} action={<button type="button" className="secondary-button" onClick={() => { setError(""); setStatus("loading"); setAttempt((current) => current + 1); }}>Tentar novamente</button>} />}
-    {status === "success" && (books.length ? <><p className="mb-5 text-sm text-muted">{books.length} {books.length === 1 ? "resultado" : "resultados"}</p><BookGrid books={books} shelves={shelves} initialShelfId={initialShelfId} /></> : <EmptyState icon={BookSearch} title="Nenhum livro encontrado." description="Tente outro título, autor ou ISBN." />)}
+    {visibleStatus === "loading" && <BookGridSkeleton />}
+    {visibleStatus === "idle" && <EmptyState icon={BookSearch} title="Encontre seu próximo livro." description="Pesquise por título, nome do autor ou ISBN." />}
+    {visibleStatus === "error" && <EmptyState icon={TriangleAlert} title="Não foi possível concluir a busca." description={error} action={<button type="button" className="secondary-button" onClick={() => { setError(""); setStatus("loading"); setAttempt((current) => current + 1); }}>Tentar novamente</button>} />}
+    {visibleStatus === "success" && (books.length ? <><p className="mb-5 text-sm text-muted">{books.length} {books.length === 1 ? "resultado" : "resultados"}</p><BookGrid books={books} shelves={shelves} initialShelfId={initialShelfId} /></> : <EmptyState icon={BookSearch} title="Nenhum livro encontrado." description="Tente outro título, autor ou ISBN." />)}
   </div>;
 }
