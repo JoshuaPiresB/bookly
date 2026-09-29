@@ -234,6 +234,6 @@ describe("contratos dos Route Handlers com services e PostgreSQL reais", () => {
     expect((await detailRoute(request("GET", `/api/shelves/${shelf.id}`), context(shelf.id))).status).toBe(404);
     vi.mocked(requireApiUser).mockRejectedValue(new AppError("UNAUTHENTICATED", "Entre na sua conta para continuar.", 401));
     expect((await listRoute(request("GET", "/api/shelves"))).status).toBe(401);
-    expect((await searchRoute(request("GET", "/api/books/search?q=Hobbit"))).status).toBe(401);
+    expect((await searchRoute(request("GET", "/api/books/search?q=Hobbit"))).status).toBe(200);
   });
 });

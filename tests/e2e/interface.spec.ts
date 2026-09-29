@@ -63,7 +63,7 @@ test("Home usa dados persistidos e mantém a composição clean", async ({ page,
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
-test("busca global, debounce, resultado e inclusão em estante funcionam", async ({ page, request }) => {
+test("busca global, resultado e inclusão em estante funcionam", async ({ page, request }) => {
   await page.setViewportSize({ width: 1366, height: 900 });
   const user = await registerAndLogin(request, page);
   const externalId = `ui-search-${randomUUID()}`;
@@ -80,9 +80,10 @@ test("busca global, debounce, resultado e inclusão em estante funcionam", async
   await expect(page.getByRole("link", { name: "Arquitetura Limpa", exact: true }).last()).toBeVisible();
   await page.goto("/explorar");
   searchRequests = 0;
-  const exploreSearch = page.getByLabel("Buscar por título, autor ou ISBN");
+  const exploreSearch = page.getByLabel("Buscar livros, autores ou ISBN");
   await exploreSearch.fill("A");
   await exploreSearch.fill("Arquitetura Limpa");
+  await exploreSearch.press("Enter");
   await expect(page.getByRole("link", { name: "Arquitetura Limpa", exact: true }).last()).toBeVisible();
   expect(searchRequests).toBe(1);
   const shelf = await db.shelf.findFirstOrThrow({ where: { userId: user.id, systemKey: "FAVORITES" } });
@@ -109,13 +110,15 @@ test("exploração apresenta erro recuperável, ausência de capa e resultado va
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data, meta: { total: data.length, limit: 24, offset: 0, nextOffset: null } }) });
   });
   await page.goto("/explorar");
-  const search = page.getByLabel("Buscar por título, autor ou ISBN");
+  const search = page.getByLabel("Buscar livros, autores ou ISBN");
   await search.fill("falha temporária");
+  await search.press("Enter");
   await expect(page.getByText("A busca está temporariamente indisponível.")).toBeVisible();
   await page.getByRole("button", { name: "Tentar novamente" }).click();
   await expect(page.getByRole("link", { name: "Livro sem capa", exact: true }).last()).toBeVisible();
   await expect(page.getByText("Autor não informado")).toBeVisible();
   await search.fill("sem resultados");
+  await search.press("Enter");
   await expect(page.getByText("Nenhum livro encontrado.")).toBeVisible();
 });
 

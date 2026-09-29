@@ -1,6 +1,5 @@
 import "server-only";
 import { getDb } from "@/lib/db";
-import { requireApiUser } from "@/lib/current-user";
 import type { Prisma } from "@/generated/prisma/client";
 import type { BookSearchResult } from "./book.types";
 import { bookSearchSchema, externalIdSchema } from "./book.schema";
@@ -33,11 +32,9 @@ export async function ensureBookExists(externalId: string) {
 }
 
 export async function searchBooks(input: unknown) {
-  await requireApiUser();
   return searchGoogleBooks(bookSearchSchema.parse(input));
 }
 
 export async function getBookDetails(externalId: string) {
-  await requireApiUser();
   return resolveBookMetadata(externalId);
 }

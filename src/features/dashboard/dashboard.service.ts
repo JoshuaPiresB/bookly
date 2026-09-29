@@ -1,13 +1,12 @@
 import "server-only";
 import { getDb } from "@/lib/db";
-import { getCurrentUser } from "@/lib/current-user";
+import { requireUser } from "@/lib/current-user";
 import { reviewSelect } from "@/features/reviews/review.service";
 
 const dashboardBookSelect = { id: true, externalId: true, title: true, authors: true, coverUrl: true, pageCount: true } as const;
 
 export async function getDashboardData() {
-  const user = await getCurrentUser();
-  if (!user) return { user: null, reading: [], shelves: [], reviews: [] };
+  const user = await requireUser();
   
   const db = getDb();
   const [reading, shelves, reviews] = await Promise.all([
