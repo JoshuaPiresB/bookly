@@ -5,6 +5,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.TEST_DATABASE_URL }) });
 const createdEmails: string[] = [];
+const createdBookIds: string[] = [];
 const password = "Uma senha de teste 123!";
 function email() { const value = `e2e-${randomUUID()}@test.bookly.local`; createdEmails.push(value); return value; }
 async function register(request: APIRequestContext, address: string) {
@@ -18,13 +19,71 @@ async function login(page: Page, address: string, pass = password) {
 }
 test.afterAll(async () => {
   await db.user.deleteMany({ where: { email: { in: createdEmails } } });
+  await db.book.deleteMany({ where: { id: { in: createdBookIds } } });
   await db.$disconnect();
 });
 
-test("protege página e API sem sessão", async ({ page, request }) => {
+test("mantém a entrada pública e protege a API sem sessão", async ({ page, request }) => {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Descubra livros e construa sua história como leitor." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sua biblioteca, do seu jeito" })).toBeVisible();
   expect((await request.get("/api/me")).status()).toBe(401);
+});
+
+test("visitante pesquisa e consulta livros, mas não acessa recursos pessoais", async ({ page }) => {
+  const book = await db.book.create({
+    data: {
+      externalId: `guest-${randomUUID()}`,
+      title: "Livro público de teste",
+      authors: ["Autora Visitante"],
+      description: "Descrição pública do catálogo.",
+      pageCount: 180,
+    },
+  });
+  createdBookIds.push(book.id);
+  await page.route("**/api/books/search**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      data: [{
+        externalId: book.externalId,
+        title: book.title,
+        subtitle: null,
+        authors: book.authors,
+        description: book.description,
+        coverUrl: null,
+        categories: [],
+        publisher: null,
+        publishedDate: null,
+        pageCount: book.pageCount,
+        language: "pt-BR",
+        isbn10: null,
+        isbn13: null,
+        averageRating: null,
+        ratingsCount: null,
+      }],
+      meta: { total: 1, limit: 24, offset: 0, nextOffset: null },
+    }),
+  }));
+
+  await page.goto("/explorar?q=Livro público");
+  await expect(page.getByRole("heading", { name: "Explorar livros" })).toBeVisible();
+  await expect(page.getByRole("link", { name: book.title, exact: true }).last()).toBeVisible();
+  await expect(page.getByLabel(`Estante para ${book.title}`)).toBeDisabled();
+  await page.getByRole("button", { name: `Adicionar ${book.title} à estante selecionada` }).click();
+  await expect(page.getByRole("dialog", { name: "Entre para continuar no Bookly" })).toBeVisible();
+  await expect(page.getByText("Este é um recurso exclusivo da sua conta.")).toBeVisible();
+  await page.getByRole("button", { name: "Agora não" }).click();
+  await page.getByRole("link", { name: book.title, exact: true }).last().click();
+  await expect(page).toHaveURL(new RegExp(`/livros/${book.externalId}$`));
+  await expect(page.getByRole("heading", { name: book.title, exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Adicionar à estante" }).click();
+  await expect(page.getByRole("dialog", { name: "Entre para continuar no Bookly" })).toBeVisible();
+  await page.getByRole("button", { name: "Agora não" }).click();
+
+  await page.getByRole("button", { name: "Minhas Estantes" }).click();
+  await expect(page.getByRole("dialog", { name: "Entre para continuar no Bookly" })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/livros/${book.externalId}$`));
 });
 
 test("cadastro → login → recarregar → logout → rota protegida", async ({ page }) => {
@@ -52,10 +111,11 @@ test("cadastro → login → recarregar → logout → rota protegida", async ({
   expect(cookie?.httpOnly).toBe(true);
   expect(cookie?.sameSite).toBe("Lax");
   await page.getByRole("menuitem", { name: "Sair", exact: true }).click();
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { name: "Descubra livros e construa sua história como leitor." })).toBeVisible();
   expect((await page.request.get("/api/me")).status()).toBe(401);
   expect((await page.context().cookies()).find((c) => c.name.includes("session-token"))).toBeUndefined();
-  await page.goto("/");
+  await page.goto("/estantes");
   await expect(page).toHaveURL(/\/login$/);
 });
 
@@ -96,7 +156,7 @@ test("ignora userId externo e invalida sessão com versão revogada", async ({ p
   await db.user.update({ where: { email: address }, data: { sessionVersion: { increment: 1 } } });
   expect((await page.request.get("/api/me")).status()).toBe(401);
   await page.reload();
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Descubra livros e construa sua história como leitor." })).toBeVisible();
 });
 
 test("login exige token CSRF e cookie adulterado não autentica", async ({ page, request }) => {
@@ -106,7 +166,7 @@ test("login exige token CSRF e cookie adulterado não autentica", async ({ page,
   expect((await request.get("/api/me")).status()).toBe(401);
   await page.context().addCookies([{ name: "next-auth.session-token", value: "token-adulterado", domain: "127.0.0.1", path: "/", httpOnly: true, sameSite: "Lax" }]);
   await page.goto("/");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole("heading", { name: "Descubra livros e construa sua história como leitor." })).toBeVisible();
 });
 
 test("formulários continuam utilizáveis em tela estreita", async ({ page }) => {
