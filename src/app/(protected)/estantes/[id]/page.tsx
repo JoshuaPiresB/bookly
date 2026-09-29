@@ -11,10 +11,12 @@ import { ShelfFormButton } from "@/components/shelves/shelf-form";
 import { ShelfSort } from "@/components/shelves/shelf-sort";
 import { AppError } from "@/lib/errors";
 import { EmptyState } from "@/components/ui/empty-state";
+import { requireUser } from "@/lib/current-user";
 
 export const metadata: Metadata = { title: "Estante" };
 export const dynamic = "force-dynamic";
 export default async function ShelfPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ sort?: string; page?: string }> }) {
+  await requireUser();
   const { id } = await params; const query = await searchParams;
   const sort = query.sort === "title" || query.sort === "author" ? query.sort : "recent";
   const page = /^\d{1,6}$/.test(query.page ?? "") ? Math.min(417, Math.max(1, Number(query.page))) : 1;
