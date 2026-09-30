@@ -20,11 +20,11 @@ export function GoogleSignInButton({ enabled }: { enabled: boolean }) {
   }
 
   return <div className="mt-5 flex flex-col items-center">
-    <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">Ou continue com</p>
-    <button type="button" onClick={connect} disabled={pending} aria-label="Continuar com Google" title="Continuar com Google" className="flex h-14 w-14 items-center justify-center rounded-full border border-slate-300 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.10)] transition-all hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-[0_12px_30px_rgba(15,23,42,0.14)]">
+    <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-subtle">Ou continue com</p>
+    <button type="button" onClick={connect} disabled={pending} aria-label="Continuar com Google" title="Continuar com Google" className="flex h-14 w-14 items-center justify-center rounded-full border border-strong bg-panel shadow-[0_8px_24px_rgba(2,8,23,0.18)] transition-all hover:-translate-y-0.5 hover:border-brand hover:shadow-[0_12px_30px_rgba(2,8,23,0.25)]">
       {pending ? <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin text-brand" /> : <GoogleIcon />}
     </button>
-    {message && <p role="alert" className="mt-3 max-w-xs text-center text-xs leading-5 text-amber-700">{message}</p>}
+    {message && <p role="alert" className="mt-3 max-w-xs text-center text-xs leading-5 text-amber-700 dark:text-amber-300">{message}</p>}
   </div>;
 }
 

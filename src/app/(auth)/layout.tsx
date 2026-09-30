@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/current-user";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   if (await getCurrentUser()) redirect("/");
-  return <main className="min-h-dvh bg-white lg:grid lg:grid-cols-[minmax(420px,0.9fr)_minmax(600px,1.1fr)]">
+  return <main className="min-h-dvh bg-panel lg:grid lg:grid-cols-[minmax(420px,0.9fr)_minmax(600px,1.1fr)]">
     <aside className="relative hidden min-h-dvh overflow-hidden bg-[#071d3e] px-12 py-10 text-white lg:flex lg:flex-col xl:px-16 xl:py-12">
       <div aria-hidden="true" className="absolute -left-32 -top-28 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
       <div aria-hidden="true" className="absolute -bottom-40 -right-28 h-[30rem] w-[30rem] rounded-full bg-sky-400/15 blur-3xl" />
@@ -38,16 +38,16 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <p className="relative text-xs text-slate-500">Bookly · Sua biblioteca digital</p>
     </aside>
 
-    <section className="relative flex min-h-dvh flex-col bg-[radial-gradient(circle_at_top_right,_#eaf4ff_0,_#f8fafc_34%,_#f8fafc_100%)] px-5 py-6 sm:px-8 lg:px-12 lg:py-10">
+    <section className="relative flex min-h-dvh flex-col bg-[radial-gradient(circle_at_top_right,_var(--bookly-auth-glow)_0,_var(--bookly-canvas)_34%,_var(--bookly-canvas)_100%)] px-4 py-4 sm:px-8 sm:py-6 lg:px-12 lg:py-10">
       <div className="flex items-center justify-between gap-4">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-muted transition-colors hover:text-ink"><ArrowLeft size={17} aria-hidden="true" />Voltar ao início</Link>
         <Link href="/" className="inline-flex items-center gap-2 text-xl font-semibold tracking-tight text-ink lg:hidden"><BookOpen size={23} className="text-brand" aria-hidden="true" />Bookly</Link>
       </div>
 
-      <div className="my-auto flex justify-center py-10">
-        <div className="w-full max-w-[500px] rounded-[24px] border border-white/80 bg-white px-6 py-8 shadow-[0_24px_70px_rgba(15,23,42,0.10)] sm:px-10 sm:py-10 xl:px-12">{children}</div>
+      <div className="my-auto flex justify-center py-7 sm:py-10">
+        <div className="w-full max-w-[500px] rounded-[20px] border border-line bg-panel px-5 py-7 shadow-[0_20px_55px_rgba(2,8,23,0.16)] sm:rounded-[24px] sm:px-10 sm:py-10 xl:px-12">{children}</div>
       </div>
-      <p className="text-center text-xs text-slate-400">Um espaço seguro para organizar suas leituras.</p>
+      <p className="text-center text-xs text-subtle">Um espaço seguro para organizar suas leituras.</p>
     </section>
   </main>;
 }

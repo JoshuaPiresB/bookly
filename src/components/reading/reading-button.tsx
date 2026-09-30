@@ -46,7 +46,7 @@ export function ReadingButton({
       <button
         type="button"
         disabled={refreshing}
-        className="secondary-button mt-4"
+        className="secondary-button mt-4 w-full sm:w-auto"
         onClick={openDialog}
       >
         {label ??
@@ -130,12 +130,12 @@ export function ReadingButton({
             )}
 
             {error && (
-              <p role="alert" className="text-sm text-red-700">
+              <p role="alert" className="text-sm text-red-700 dark:text-red-300">
                 {error}
               </p>
             )}
 
-            <div className="flex justify-end gap-3">
+            <div className="mobile-action-stack flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setOpen(false)}
