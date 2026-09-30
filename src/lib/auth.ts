@@ -1,29 +1,58 @@
 import "server-only";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { authenticateUser } from "@/features/auth/auth.service";
+import GoogleProvider, { type GoogleProfile } from "next-auth/providers/google";
+import { authenticateGoogleUser, authenticateUser } from "@/features/auth/auth.service";
 import { AppError } from "@/lib/errors";
 import { getDb } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
 
 export function getAuthOptions(): NextAuthOptions {
+  const env = getServerEnv();
+  const providers: NextAuthOptions["providers"] = [CredentialsProvider({
+    name: "E-mail e senha",
+    credentials: { email: { label: "E-mail", type: "email" }, password: { label: "Senha", type: "password" } },
+    async authorize(credentials) {
+      try { return await authenticateUser(credentials); }
+      catch (error) {
+        if (error instanceof AppError && error.code === "RATE_LIMITED") throw new Error("RATE_LIMITED");
+        console.error("[Bookly] Serviço de login indisponível.");
+        throw new Error("AUTH_UNAVAILABLE");
+      }
+    },
+  })];
+  if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+    providers.push(GoogleProvider({ clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }));
+  }
+
   return {
-    secret: getServerEnv().AUTH_SECRET,
+    secret: env.AUTH_SECRET,
     session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
     pages: { signIn: "/login", error: "/login" },
-    providers: [CredentialsProvider({
-      name: "E-mail e senha",
-      credentials: { email: { label: "E-mail", type: "email" }, password: { label: "Senha", type: "password" } },
-      async authorize(credentials) {
-        try { return await authenticateUser(credentials); }
-        catch (error) {
-          if (error instanceof AppError && error.code === "RATE_LIMITED") throw new Error("RATE_LIMITED");
-          console.error("[Bookly] Serviço de login indisponível.");
-          throw new Error("AUTH_UNAVAILABLE");
+    providers,
+    callbacks: {
+      async signIn({ user, account, profile }) {
+        if (account?.provider !== "google") return true;
+        const googleProfile = profile as GoogleProfile | undefined;
+        if (!googleProfile?.email_verified || !googleProfile.sub || !user.email) return false;
+        try {
+          const localUser = await authenticateGoogleUser({
+            googleId: googleProfile.sub,
+            email: user.email,
+            name: user.name ?? user.email.split("@")[0],
+            avatarUrl: user.image,
+          });
+          user.id = localUser.id;
+          user.name = localUser.name;
+          user.email = localUser.email;
+          user.image = localUser.avatarUrl;
+          user.sessionVersion = localUser.sessionVersion;
+          return true;
+        } catch {
+          console.error("[Bookly auth] Não foi possível vincular a conta Google.");
+          return false;
         }
       },
-    })],
-    callbacks: {
       async jwt({ token, user }) {
         if (user) {
           token.sub = user.id;
