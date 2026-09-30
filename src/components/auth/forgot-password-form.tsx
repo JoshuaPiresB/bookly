@@ -77,7 +77,7 @@ export function ForgotPasswordForm() {
   if (success) {
     return (
       <div className="space-y-6">
-        <p role="status" className="rounded-lg bg-green-50 p-4 text-sm leading-6 text-green-800">
+        <p role="status" className="rounded-lg bg-green-50 p-4 text-sm leading-6 text-green-800 dark:bg-green-950/40 dark:text-green-300">
           {success}
         </p>
         <p className="text-sm leading-6 text-muted">
@@ -103,7 +103,7 @@ export function ForgotPasswordForm() {
         error={emailError}
         disabled={pending}
       />
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
       <button type="submit" className="primary-button w-full" disabled={pending}>
         {pending && <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />}
         {pending ? "Enviando…" : "Enviar link"}

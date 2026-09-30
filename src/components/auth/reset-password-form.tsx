@@ -28,7 +28,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   if (!resetTokenSchema.safeParse(token).success) {
     return (
       <div className="space-y-6">
-        <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm leading-6 text-red-800">
+        <p role="alert" className="rounded-lg bg-red-50 p-4 text-sm leading-6 text-red-800 dark:bg-red-950/40 dark:text-red-300">
           Este link de redefinição é inválido ou está incompleto.
         </p>
         <Link href="/esqueci-senha" className="primary-button w-full">
@@ -128,7 +128,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         error={fields.confirmPassword}
         disabled={pending}
       />
-      {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
       <button type="submit" className="primary-button w-full" disabled={pending}>
         {pending && <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />}
         {pending ? "Salvando…" : "Redefinir senha"}
