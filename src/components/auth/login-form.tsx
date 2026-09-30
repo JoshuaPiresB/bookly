@@ -8,10 +8,10 @@ import { LoaderCircle } from "lucide-react";
 import { loginSchema } from "@/features/auth/auth.schema";
 import { AuthField } from "./auth-field";
 
-export function LoginForm({ registered = false, passwordReset = false }: { registered?: boolean; passwordReset?: boolean }) {
+export function LoginForm({ registered = false, passwordReset = false, oauthError = false }: { registered?: boolean; passwordReset?: boolean; oauthError?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(oauthError ? "Não foi possível entrar com o Google. Tente novamente." : "");
   const sending = useRef(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
