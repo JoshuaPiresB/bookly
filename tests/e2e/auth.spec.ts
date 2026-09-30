@@ -25,9 +25,9 @@ test.afterAll(async () => {
 
 test("mantém a entrada pública e protege a API sem sessão", async ({ page, request }) => {
   await page.goto("/login");
-  await expect(page.getByRole("button", { name: "Continuar com Google" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continuar com Google" })).toHaveCount(0);
   const providers = await request.get("/api/auth/providers");
-  expect((await providers.json()).google.id).toBe("google");
+  expect((await providers.json()).google).toBeUndefined();
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Descubra livros e construa sua história como leitor." })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sua biblioteca, do seu jeito" })).toBeVisible();

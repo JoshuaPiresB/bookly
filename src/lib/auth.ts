@@ -1,8 +1,11 @@
 import "server-only";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider, { type GoogleProfile } from "next-auth/providers/google";
-import { authenticateGoogleUser, authenticateUser } from "@/features/auth/auth.service";
+// Login com Google temporariamente desativado. Para reativar, restaure este import
+// e os dois blocos identificados como "Google OAuth" abaixo.
+// import GoogleProvider, { type GoogleProfile } from "next-auth/providers/google";
+import { authenticateUser } from "@/features/auth/auth.service";
+// import { authenticateGoogleUser } from "@/features/auth/auth.service";
 import { AppError } from "@/lib/errors";
 import { getDb } from "@/lib/db";
 import { getServerEnv } from "@/lib/env";
@@ -21,9 +24,10 @@ export function getAuthOptions(): NextAuthOptions {
       }
     },
   })];
-  if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
-    providers.push(GoogleProvider({ clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }));
-  }
+  // Google OAuth (temporariamente desativado):
+  // if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+  //   providers.push(GoogleProvider({ clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET }));
+  // }
 
   return {
     secret: env.AUTH_SECRET,
@@ -31,28 +35,29 @@ export function getAuthOptions(): NextAuthOptions {
     pages: { signIn: "/login", error: "/login" },
     providers,
     callbacks: {
-      async signIn({ user, account, profile }) {
-        if (account?.provider !== "google") return true;
-        const googleProfile = profile as GoogleProfile | undefined;
-        if (!googleProfile?.email_verified || !googleProfile.sub || !user.email) return false;
-        try {
-          const localUser = await authenticateGoogleUser({
-            googleId: googleProfile.sub,
-            email: user.email,
-            name: user.name ?? user.email.split("@")[0],
-            avatarUrl: user.image,
-          });
-          user.id = localUser.id;
-          user.name = localUser.name;
-          user.email = localUser.email;
-          user.image = localUser.avatarUrl;
-          user.sessionVersion = localUser.sessionVersion;
-          return true;
-        } catch {
-          console.error("[Bookly auth] Não foi possível vincular a conta Google.");
-          return false;
-        }
-      },
+      // Google OAuth (temporariamente desativado):
+      // async signIn({ user, account, profile }) {
+      //   if (account?.provider !== "google") return true;
+      //   const googleProfile = profile as GoogleProfile | undefined;
+      //   if (!googleProfile?.email_verified || !googleProfile.sub || !user.email) return false;
+      //   try {
+      //     const localUser = await authenticateGoogleUser({
+      //       googleId: googleProfile.sub,
+      //       email: user.email,
+      //       name: user.name ?? user.email.split("@")[0],
+      //       avatarUrl: user.image,
+      //     });
+      //     user.id = localUser.id;
+      //     user.name = localUser.name;
+      //     user.email = localUser.email;
+      //     user.image = localUser.avatarUrl;
+      //     user.sessionVersion = localUser.sessionVersion;
+      //     return true;
+      //   } catch {
+      //     console.error("[Bookly auth] Não foi possível vincular a conta Google.");
+      //     return false;
+      //   }
+      // },
       async jwt({ token, user }) {
         if (user) {
           token.sub = user.id;

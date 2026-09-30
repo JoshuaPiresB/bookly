@@ -18,6 +18,6 @@ export default defineConfig({
   webServer: {
     command: "node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3001",
     url: `${baseURL}/login`, reuseExistingServer: false, timeout: 60000,
-    env: { NODE_ENV: "production", DATABASE_URL: database.toString(), DIRECT_URL: database.toString(), NEXTAUTH_URL: baseURL, GOOGLE_CLIENT_ID: "google-client-id-for-e2e", GOOGLE_CLIENT_SECRET: "google-client-secret-for-e2e" },
+    env: { NODE_ENV: "production", DATABASE_URL: database.toString(), DIRECT_URL: database.toString(), NEXTAUTH_URL: baseURL },
   },
 });

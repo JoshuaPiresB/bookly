@@ -7,7 +7,7 @@ Biblioteca pessoal full-stack para descobrir livros, organizar estantes, acompan
 - Next.js 16 com App Router e React 19
 - TypeScript em modo strict, Tailwind CSS 4 e ESLint
 - PostgreSQL 17, Prisma 7 e adapter `pg`
-- NextAuth/Auth.js com credenciais, Google OAuth, JWT e bcrypt
+- NextAuth/Auth.js com credenciais, JWT e bcrypt; implementação Google OAuth preservada, mas temporariamente desativada
 - Zod para contratos de entrada
 - Vitest para testes unitários e de integração; Playwright para E2E
 
@@ -40,7 +40,7 @@ O PostgreSQL do Compose expõe a porta apenas em `127.0.0.1`. Se a porta 5432 es
 | `DIRECT_URL` | Conexão direta opcional para migrations quando a aplicação usa pooler |
 | `AUTH_SECRET` | Segredo com pelo menos 32 caracteres |
 | `NEXTAUTH_URL` | Origem canônica, por exemplo `http://localhost:3000` |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Credenciais OAuth opcionais; habilitam o botão de login com Google quando ambas estão preenchidas |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Reservadas para a implementação Google OAuth, atualmente desativada no código |
 | `GOOGLE_BOOKS_API_KEY` | Chave opcional, usada somente no servidor; recomendada para quota própria |
 | `RESEND_API_KEY` | Chave de envio de e-mail; em desenvolvimento pode ficar vazia |
 | `RESEND_FROM` | Remetente verificado, por exemplo `Bookly <contato@seu-dominio.com>` |
@@ -52,9 +52,9 @@ O PostgreSQL do Compose expõe a porta apenas em `127.0.0.1`. Se a porta 5432 es
 
 Use no navegador exatamente a origem de `NEXTAUTH_URL`: não alterne entre `localhost` e `127.0.0.1`. Cookies e proteção de origem dependem dela.
 
-### Login com Google
+### Login com Google (temporariamente desativado)
 
-Crie um cliente OAuth do tipo **Aplicativo da Web** no Google Cloud Console. No desenvolvimento, cadastre como URI de redirecionamento autorizada:
+A implementação foi preservada em comentários no provedor e na página de login para reativação futura. Enquanto estiver desativada, não configure `GOOGLE_CLIENT_ID` nem `GOOGLE_CLIENT_SECRET`. Ao reativar, crie um cliente OAuth do tipo **Aplicativo da Web** no Google Cloud Console e, no desenvolvimento, cadastre como URI de redirecionamento autorizada:
 
 ```text
 http://localhost:3000/api/auth/callback/google
@@ -146,7 +146,7 @@ O banco também garante conteúdo não vazio, rating válido, páginas positivas
 
 | Rota | Conteúdo |
 |---|---|
-| `/login`, `/cadastro` | Autenticação por e-mail/senha ou conta Google |
+| `/login`, `/cadastro` | Autenticação por e-mail e senha |
 | `/esqueci-senha`, `/redefinir-senha` | Solicitação do link e definição segura de uma nova senha |
 | `/` | Continue lendo, estantes e duas resenhas recentes |
 | `/explorar` | Busca por título, autor ou ISBN, com debounce e estados de erro/vazio |
@@ -204,7 +204,7 @@ O transporte usa HTTPS, host fixo, sem redirects, timeout total de 8 segundos, c
 
 ## Autenticação e segurança
 
-- Credentials e Google OAuth + JWT do NextAuth; cookie `httpOnly`, `sameSite=lax` e `secure` sob HTTPS.
+- Credentials + JWT do NextAuth; implementação Google OAuth preservada para reativação futura. Cookie `httpOnly`, `sameSite=lax` e `secure` sob HTTPS.
 - Senhas de 10 a 72 bytes e bcrypt custo 12; e-mail normalizado e erro de duplicidade em português.
 - Sessão máxima de sete dias e validação de `sessionVersion` no banco para revogação de tokens antigos.
 - Rate limit de cadastro/login por identificador normalizado, compartilhado entre processos.
