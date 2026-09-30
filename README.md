@@ -7,7 +7,7 @@ Biblioteca pessoal full-stack para descobrir livros, organizar estantes, acompan
 - Next.js 16 com App Router e React 19
 - TypeScript em modo strict, Tailwind CSS 4 e ESLint
 - PostgreSQL 17, Prisma 7 e adapter `pg`
-- NextAuth/Auth.js com credenciais, JWT e bcrypt
+- NextAuth/Auth.js com credenciais, Google OAuth, JWT e bcrypt
 - Zod para contratos de entrada
 - Vitest para testes unitários e de integração; Playwright para E2E
 
@@ -26,7 +26,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000), crie uma conta em `/cadastro` e entre em `/login`. Uma visita a `/` sem sessão é redirecionada para o login.
+Abra [http://localhost:3000](http://localhost:3000). Visitantes podem pesquisar livros; para usar a biblioteca pessoal, crie uma conta em `/cadastro` ou entre em `/login`.
 
 `npm run env:init` cria um `.env` local com senha do banco e segredo de autenticação aleatórios. O comando não imprime segredos nem sobrescreve um arquivo existente. Alternativamente, copie `.env.example` para `.env` e preencha os valores. Nunca versione `.env`.
 
@@ -40,6 +40,7 @@ O PostgreSQL do Compose expõe a porta apenas em `127.0.0.1`. Se a porta 5432 es
 | `DIRECT_URL` | Conexão direta opcional para migrations quando a aplicação usa pooler |
 | `AUTH_SECRET` | Segredo com pelo menos 32 caracteres |
 | `NEXTAUTH_URL` | Origem canônica, por exemplo `http://localhost:3000` |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Credenciais OAuth opcionais; habilitam o botão de login com Google quando ambas estão preenchidas |
 | `GOOGLE_BOOKS_API_KEY` | Chave opcional, usada somente no servidor; recomendada para quota própria |
 | `RESEND_API_KEY` | Chave de envio de e-mail; em desenvolvimento pode ficar vazia |
 | `RESEND_FROM` | Remetente verificado, por exemplo `Bookly <contato@seu-dominio.com>` |
@@ -50,6 +51,18 @@ O PostgreSQL do Compose expõe a porta apenas em `127.0.0.1`. Se a porta 5432 es
 | `PLAYWRIGHT_CHANNEL` | Opcional: `msedge` ou `chrome`; vazio usa Chromium do Playwright |
 
 Use no navegador exatamente a origem de `NEXTAUTH_URL`: não alterne entre `localhost` e `127.0.0.1`. Cookies e proteção de origem dependem dela.
+
+### Login com Google
+
+Crie um cliente OAuth do tipo **Aplicativo da Web** no Google Cloud Console. No desenvolvimento, cadastre como URI de redirecionamento autorizada:
+
+```text
+http://localhost:3000/api/auth/callback/google
+```
+
+Para produção, cadastre a mesma rota no domínio HTTPS público, por exemplo `https://bookly.exemplo.com/api/auth/callback/google`. Copie o ID e o segredo para `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`, mantenha `NEXTAUTH_URL` igual à origem usada no navegador e reinicie a aplicação. Se o app OAuth estiver no modo de testes, adicione os e-mails permitidos como usuários de teste na tela de consentimento.
+
+O Bookly solicita somente `openid`, `email` e `profile`. Contas novas recebem automaticamente as estantes SYSTEM; um e-mail Google verificado que já exista no Bookly é vinculado à conta existente. Tokens de acesso do Google não são persistidos.
 
 ### E-mail de recuperação de senha
 
@@ -115,7 +128,7 @@ Escritas relacionadas à biblioteca bloqueiam a linha do usuário durante uma tr
 
 | Modelo | Responsabilidade e garantias |
 |---|---|
-| `User` | Perfil, hash da senha, e-mail normalizado/único e versão de sessão |
+| `User` | Perfil, senha local opcional, identidade Google opcional, e-mail normalizado/único e versão de sessão |
 | `PasswordResetToken` | Hash SHA-256 do link, expiração e marca de uso; um token ativo por usuário |
 | `Book` | Catálogo global; `externalId` único, ISBNs indexados e metadados opcionais |
 | `Shelf` | Estante do usuário; `SYSTEM/CUSTOM`, nome normalizado único por usuário |
@@ -133,7 +146,7 @@ O banco também garante conteúdo não vazio, rating válido, páginas positivas
 
 | Rota | Conteúdo |
 |---|---|
-| `/login`, `/cadastro` | Autenticação por e-mail e senha |
+| `/login`, `/cadastro` | Autenticação por e-mail/senha ou conta Google |
 | `/esqueci-senha`, `/redefinir-senha` | Solicitação do link e definição segura de uma nova senha |
 | `/` | Continue lendo, estantes e duas resenhas recentes |
 | `/explorar` | Busca por título, autor ou ISBN, com debounce e estados de erro/vazio |
@@ -191,7 +204,7 @@ O transporte usa HTTPS, host fixo, sem redirects, timeout total de 8 segundos, c
 
 ## Autenticação e segurança
 
-- Credentials + JWT do NextAuth; cookie `httpOnly`, `sameSite=lax` e `secure` sob HTTPS.
+- Credentials e Google OAuth + JWT do NextAuth; cookie `httpOnly`, `sameSite=lax` e `secure` sob HTTPS.
 - Senhas de 10 a 72 bytes e bcrypt custo 12; e-mail normalizado e erro de duplicidade em português.
 - Sessão máxima de sete dias e validação de `sessionVersion` no banco para revogação de tokens antigos.
 - Rate limit de cadastro/login por identificador normalizado, compartilhado entre processos.
