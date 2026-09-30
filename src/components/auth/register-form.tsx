@@ -49,7 +49,7 @@ export function RegisterForm() {
     <AuthField id="email" name="email" label="E-mail" type="email" autoComplete="email" maxLength={254} required error={fields.email} disabled={pending} />
     <div><AuthField id="password" name="password" label="Senha" type="password" autoComplete="new-password" required error={fields.password} disabled={pending} aria-describedby="password-hint" /><p id="password-hint" className="mt-2 text-sm text-muted">Use pelo menos 10 caracteres.</p></div>
     <AuthField id="confirmPassword" name="confirmPassword" label="Confirmar senha" type="password" autoComplete="new-password" required error={fields.confirmPassword} disabled={pending} />
-    <div aria-live="polite">{error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3.5 text-sm text-red-700">{error}</p>}</div>
+    <div aria-live="polite">{error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3.5 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">{error}</p>}</div>
     <button type="submit" className="primary-button min-h-[52px] w-full rounded-xl shadow-[0_10px_24px_rgba(18,104,207,0.20)]" disabled={pending}>{pending && <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />}{pending ? "Criando conta…" : "Criar conta"}</button>
   </form>;
 }

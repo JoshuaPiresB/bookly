@@ -8,10 +8,10 @@ import { LoaderCircle } from "lucide-react";
 import { loginSchema } from "@/features/auth/auth.schema";
 import { AuthField } from "./auth-field";
 
-export function LoginForm({ registered = false, passwordReset = false }: { registered?: boolean; passwordReset?: boolean }) {
+export function LoginForm({ registered = false, passwordReset = false, oauthError = false }: { registered?: boolean; passwordReset?: boolean; oauthError?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(oauthError ? "Não foi possível entrar com o Google. Tente novamente." : "");
   const sending = useRef(false);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -33,8 +33,8 @@ export function LoginForm({ registered = false, passwordReset = false }: { regis
   }
 
   return <form onSubmit={submit} className="space-y-5" aria-busy={pending}>
-    {registered && <p role="status" className="rounded-xl border border-green-100 bg-green-50 p-3.5 text-sm text-green-800">Conta criada. Entre para continuar.</p>}
-    {passwordReset && <p role="status" className="rounded-xl border border-green-100 bg-green-50 p-3.5 text-sm text-green-800">Senha redefinida. Entre com a nova senha.</p>}
+    {registered && <p role="status" className="rounded-xl border border-green-100 bg-green-50 p-3.5 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">Conta criada. Entre para continuar.</p>}
+    {passwordReset && <p role="status" className="rounded-xl border border-green-100 bg-green-50 p-3.5 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">Senha redefinida. Entre com a nova senha.</p>}
     <AuthField id="email" name="email" label="E-mail" type="email" autoComplete="email" maxLength={254} required disabled={pending} />
     <div>
       <AuthField id="password" name="password" label="Senha" type="password" autoComplete="current-password" required disabled={pending} />
@@ -42,7 +42,7 @@ export function LoginForm({ registered = false, passwordReset = false }: { regis
         <Link href="/esqueci-senha" className="text-sm font-medium text-brand underline-offset-4 hover:underline">Esqueci minha senha</Link>
       </div>
     </div>
-    {error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3.5 text-sm text-red-700">{error}</p>}
+    {error && <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3.5 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">{error}</p>}
     <button className="primary-button min-h-[52px] w-full rounded-xl shadow-[0_10px_24px_rgba(18,104,207,0.20)]" type="submit" disabled={pending}>{pending && <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />}{pending ? "Entrando…" : "Entrar"}</button>
   </form>;
 }

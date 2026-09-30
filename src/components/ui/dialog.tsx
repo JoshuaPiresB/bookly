@@ -18,7 +18,7 @@ export function Dialog({ title, children, onClose, busy = false }: { title: stri
     document.body.style.overflow = "hidden";
     return () => { dialog?.close(); document.body.style.overflow = overflow; previous?.focus(); };
   }, []);
-  return <dialog ref={ref} aria-labelledby={titleId} onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }} className="m-auto max-h-[85dvh] w-[calc(100%_-_2rem)] max-w-[560px] overflow-y-auto rounded-2xl border border-line bg-white p-6 text-ink shadow-xl backdrop:bg-ink/30">
-    <div className="mb-6 flex items-center justify-between gap-4"><h2 id={titleId} className="font-serif text-2xl font-semibold">{title}</h2><button type="button" disabled={busy} onClick={onClose} aria-label="Fechar diálogo" className="icon-button"><X size={20} aria-hidden="true" /></button></div>{children}
+  return <dialog ref={ref} aria-labelledby={titleId} onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }} className="m-auto max-h-[calc(100dvh-1rem)] w-[calc(100%_-_1rem)] max-w-[560px] overscroll-contain overflow-y-auto rounded-2xl border border-line bg-panel p-4 text-ink shadow-xl backdrop:bg-slate-950/65 sm:max-h-[85dvh] sm:w-[calc(100%_-_2rem)] sm:p-6">
+    <div className="mb-5 flex items-start justify-between gap-3 sm:mb-6 sm:items-center sm:gap-4"><h2 id={titleId} className="min-w-0 font-serif text-xl font-semibold leading-7 sm:text-2xl">{title}</h2><button type="button" disabled={busy} onClick={onClose} aria-label="Fechar diálogo" className="icon-button -mr-2 -mt-2 sm:mr-0 sm:mt-0"><X size={20} aria-hidden="true" /></button></div>{children}
   </dialog>;
 }

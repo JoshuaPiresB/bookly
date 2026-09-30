@@ -9,10 +9,10 @@ function NoteItems({ externalId, pageCount, notes }: Props) {
       {note.page !== null && <span>Pág. {note.page}</span>}
       <time dateTime={note.createdAt.toISOString()}>{note.createdAt.toLocaleDateString("pt-BR", { timeZone: "UTC" })}</time>
       <details className="relative ml-auto"><summary className="icon-button list-none [&::-webkit-details-marker]:hidden" aria-label={`Opções da anotação${note.page !== null ? ` da página ${note.page}` : " sem página"}`}><MoreHorizontal size={19} /></summary>
-        <div className="absolute right-0 z-10 flex w-36 flex-col rounded-xl border border-line bg-white p-2 shadow-sm"><NoteEditor externalId={externalId} pageCount={pageCount} note={note} /><ConfirmAction label="Excluir" title="Excluir anotação?" description="Esta anotação será excluída. O livro e os demais registros serão preservados." url={`/api/notes/${note.id}`} successMessage="Anotação excluída." /></div>
+        <div className="absolute right-0 z-10 flex w-36 flex-col rounded-xl border border-line bg-panel p-2 shadow-sm"><NoteEditor externalId={externalId} pageCount={pageCount} note={note} /><ConfirmAction label="Excluir" title="Excluir anotação?" description="Esta anotação será excluída. O livro e os demais registros serão preservados." url={`/api/notes/${note.id}`} successMessage="Anotação excluída." /></div>
       </details>
     </div>
-    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-600 wrap-anywhere">{note.content}</p>
+    <p className="mt-2 whitespace-pre-line text-sm leading-7 text-body wrap-anywhere">{note.content}</p>
   </li>)}</ul>;
 }
 

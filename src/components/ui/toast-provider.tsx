@@ -16,10 +16,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     window.setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 4500);
   }, []);
   const value = useMemo(() => ({ showToast }), [showToast]);
-  return <ToastContext.Provider value={value}>{children}<div className="fixed bottom-5 right-5 z-[70] flex w-[min(360px,calc(100vw-2rem))] flex-col gap-2" aria-live="polite" aria-atomic="true">
-    {toasts.map((toast) => <div key={toast.id} role="status" className="flex items-start gap-3 rounded-xl border border-line bg-white p-4 text-sm text-ink shadow-[0_18px_45px_rgba(15,23,42,0.14)]">
+  return <ToastContext.Provider value={value}>{children}<div className="fixed inset-x-4 bottom-4 z-[90] ml-auto flex w-auto max-w-[360px] flex-col gap-2 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:w-[min(360px,calc(100vw-2rem))]" aria-live="polite" aria-atomic="true">
+    {toasts.map((toast) => <div key={toast.id} role="status" className="flex items-start gap-3 rounded-xl border border-line bg-panel p-4 text-sm text-ink shadow-[0_18px_45px_rgba(2,8,23,0.32)]">
       {toast.kind === "success" ? <CheckCircle2 aria-hidden="true" size={19} className="mt-0.5 shrink-0 text-emerald-600" /> : <CircleAlert aria-hidden="true" size={19} className="mt-0.5 shrink-0 text-red-600" />}
-      <span className="min-w-0 flex-1 leading-5">{toast.message}</span><button type="button" onClick={() => setToasts((current) => current.filter((item) => item.id !== toast.id))} aria-label="Fechar mensagem" className="rounded text-slate-400 hover:text-ink"><X aria-hidden="true" size={17} /></button>
+      <span className="min-w-0 flex-1 leading-5">{toast.message}</span><button type="button" onClick={() => setToasts((current) => current.filter((item) => item.id !== toast.id))} aria-label="Fechar mensagem" className="rounded text-subtle hover:text-ink"><X aria-hidden="true" size={17} /></button>
     </div>)}
   </div></ToastContext.Provider>;
 }

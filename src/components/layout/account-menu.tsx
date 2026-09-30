@@ -21,26 +21,26 @@ export function AccountMenu({ name, email }: { name: string; email: string }) {
   }, []);
   
   return <div ref={container} className="relative shrink-0">
-    <button type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-haspopup="menu" aria-label={`Abrir menu da conta de ${name}`} className="flex min-h-11 items-center gap-2 rounded-xl px-1.5 py-1 text-sm font-medium text-ink hover:bg-slate-50">
+    <button type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-haspopup="menu" aria-label={`Abrir menu da conta de ${name}`} className="flex min-h-11 items-center gap-2 rounded-xl px-1.5 py-1 text-sm font-medium text-ink hover:bg-hover">
       {isGuest ? (
-        <UserCircle2 className="h-9 w-9 text-slate-400" strokeWidth={1.5} />
+        <UserCircle2 className="h-9 w-9 text-subtle" strokeWidth={1.5} />
       ) : (
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-xs font-semibold tracking-wide text-white" aria-hidden="true">{initials}</span>
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-action text-xs font-semibold tracking-wide text-white" aria-hidden="true">{initials}</span>
       )}
       <span className="hidden max-w-32 truncate xl:block">{firstName}</span>
-      <ChevronDown aria-hidden="true" size={15} className={`hidden text-slate-400 transition-transform sm:block ${open ? "rotate-180" : ""}`} />
+      <ChevronDown aria-hidden="true" size={15} className={`hidden text-subtle transition-transform sm:block ${open ? "rotate-180" : ""}`} />
     </button>
-    {open && <div role="menu" className="absolute right-0 top-[calc(100%+8px)] z-50 w-56 rounded-xl border border-line bg-white p-2 shadow-[0_18px_50px_rgba(15,23,42,0.12)]">
+    {open && <div role="menu" className="absolute right-0 top-[calc(100%+8px)] z-50 w-56 rounded-xl border border-line bg-panel p-2 shadow-[0_18px_50px_rgba(2,8,23,0.28)]">
       <div className="border-b border-line px-3 py-2.5">
         <p className="truncate text-sm font-semibold text-ink">{name}</p>
         {!isGuest && <p className="mt-0.5 truncate text-xs text-muted">{email}</p>}
       </div>
       <div className="mt-1">
         {isGuest ? (
-          <Link role="menuitem" href="/login" className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-ink"><LogIn aria-hidden="true" size={16} />Fazer Login</Link>
+          <Link role="menuitem" href="/login" className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-body hover:bg-hover hover:text-ink"><LogIn aria-hidden="true" size={16} />Fazer Login</Link>
         ) : (
           <>
-            <Link role="menuitem" href="/configuracoes" className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-ink"><Settings aria-hidden="true" size={16} />Configurações</Link>
+            <Link role="menuitem" href="/configuracoes" className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-body hover:bg-hover hover:text-ink"><Settings aria-hidden="true" size={16} />Configurações</Link>
             <LogoutButton variant="menu" />
           </>
         )}

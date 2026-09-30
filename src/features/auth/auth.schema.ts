@@ -19,6 +19,12 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({ email: emailSchema, password: passwordSchema });
+export const googleIdentitySchema = z.object({
+  googleId: z.string().trim().min(1).max(255),
+  email: emailSchema,
+  name: z.string().trim().min(1).max(80),
+  avatarUrl: z.url().max(2048).nullable().optional(),
+}).strict();
 export const forgotPasswordSchema = z.object({ email: emailSchema }).strict();
 export const resetTokenSchema = z.string("Link de redefinição inválido.")
   .regex(/^[0-9a-f]{64}$/i, "Link de redefinição inválido.");

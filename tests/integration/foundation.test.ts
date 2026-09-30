@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import bcrypt from "bcrypt";
 import { getDb } from "@/lib/db";
-import { registerUser, authenticateUser } from "@/features/auth/auth.service";
+import { registerUser, authenticateGoogleUser, authenticateUser } from "@/features/auth/auth.service";
 import { consumeAuthAttempt } from "@/features/auth/rate-limit";
 import { deleteShelf } from "@/features/shelves/shelf.service";
 import { requireApiUser } from "@/lib/current-user";
@@ -36,7 +36,7 @@ describe("fundação em PostgreSQL real", () => {
     expect(user).not.toHaveProperty("passwordHash");
     const stored = await db.user.findUniqueOrThrow({ where: { id: user.id }, include: { shelves: true } });
     expect(stored.passwordHash).not.toBe(input.password);
-    expect(await bcrypt.compare(input.password, stored.passwordHash)).toBe(true);
+    expect(await bcrypt.compare(input.password, stored.passwordHash!)).toBe(true);
     expect(stored.shelves.map((s) => s.systemKey).sort()).toEqual(["FAVORITES", "READ", "WANT_TO_READ"]);
     expect(stored.shelves.every((s) => s.type === "SYSTEM")).toBe(true);
   });
@@ -52,6 +52,26 @@ describe("fundação em PostgreSQL real", () => {
     expect(await authenticateUser(input)).toMatchObject({ id: user.id });
     expect(await authenticateUser({ ...input, password: "Senha errada 123!" })).toBeNull();
     expect(await authenticateUser(registration("inexistente"))).toBeNull();
+  });
+  it("cria uma conta Google de forma idempotente com as estantes padrão", async () => {
+    const identity = { googleId: `google-${runId}`, email: `google-${runId}@test.bookly.local`, name: "Leitora Google", avatarUrl: "https://example.com/avatar.png" };
+    const first = await authenticateGoogleUser(identity);
+    userIds.push(first.id);
+    const second = await authenticateGoogleUser(identity);
+    const stored = await db.user.findUniqueOrThrow({ where: { id: first.id }, include: { shelves: true } });
+    expect(second.id).toBe(first.id);
+    expect(stored.passwordHash).toBeNull();
+    expect(stored.googleId).toBe(identity.googleId);
+    expect(stored.shelves.map((shelf) => shelf.systemKey).sort()).toEqual(["FAVORITES", "READ", "WANT_TO_READ"]);
+  });
+  it("vincula o Google à conta local com o mesmo e-mail verificado", async () => {
+    const { user, input } = await createUser("vinculo-google");
+    const linked = await authenticateGoogleUser({ googleId: `linked-${runId}`, email: input.email, name: "Outro nome", avatarUrl: null });
+    const stored = await db.user.findUniqueOrThrow({ where: { id: user.id } });
+    expect(linked.id).toBe(user.id);
+    expect(stored.googleId).toBe(`linked-${runId}`);
+    expect(stored.passwordHash).not.toBeNull();
+    expect(stored.name).toBe("Leitor Teste");
   });
   it("cadastro concorrente mantém um único usuário e três estantes", async () => {
     const input = registration("concorrente");
